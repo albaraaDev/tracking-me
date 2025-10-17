@@ -218,13 +218,8 @@ function renderProjectView(project) {
   const toolbar = document.createElement("div");
   toolbar.className = "view-toolbar";
   toolbar.innerHTML = `
-    <button class="primary-btn" id="add-section-btn">قسم جديد</button>
     <button class="icon-btn" id="project-options-btn" aria-label="خيارات المشروع">⋮</button>
-
   `;
-  toolbar
-    .querySelector("#add-section-btn")
-    ?.addEventListener("click", () => openSectionForm(project));
   toolbar
     .querySelector("#project-options-btn")
     ?.addEventListener("click", () => openProjectMenu(project));
@@ -234,7 +229,18 @@ function renderProjectView(project) {
   const listHeading = document.createElement("h3");
   listHeading.className = "list-title";
   listHeading.textContent = "أقسام المشروع";
-  wrapper.appendChild(listHeading);
+  const headingRow = document.createElement("div");
+  headingRow.className = "list-header";
+  headingRow.appendChild(listHeading);
+
+  const addSectionBtn = document.createElement("button");
+  addSectionBtn.className = "primary-btn";
+  addSectionBtn.id = "add-section-btn";
+  addSectionBtn.textContent = "قسم جديد";
+  addSectionBtn.addEventListener("click", () => openSectionForm(project));
+  headingRow.appendChild(addSectionBtn);
+
+  wrapper.appendChild(headingRow);
 
   if (!project.sections.length) {
     const empty = document.createElement("div");

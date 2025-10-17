@@ -1,0 +1,27 @@
+{
+  "name": "متابعتي - إدارة العادات",
+  "short_name": "متابعتي",
+  "description": "تطبيق ويب تقدمي لإدارة المشاريع والعادات يعمل دون اتصال بالإنترنت.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1729",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>متابعتي</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.svg">
+  <link rel="stylesheet" href="styles/base.css">
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <button class="nav-back" id="nav-back" aria-label="رجوع">
+        <span aria-hidden="true">‹</span>
+      </button>
+      <div class="header-avatar" aria-hidden="true">🌱</div>
+      <div class="header-text">
+        <p class="header-greeting">مرحباً</p>
+        <h1 class="header-title">متابعتي</h1>
+      </div>
+    </header>
+    <main id="app-content" class="app-content">
+      <section class="empty-state" role="status">
+        <h2>لنبدأ مشروعاً جديداً</h2>
+        <p>أنشئ مشروعاً لمتابعة عاداتك وتسكاتك اليومية.</p>
+        <button class="primary-btn" id="new-project-btn">إضافة مشروع</button>
+      </section>
+    </main>
+  </div>
+  <div id="modal-root" aria-live="polite"></div>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

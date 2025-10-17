@@ -59,14 +59,6 @@ function init() {
     .querySelector(".header-text")
     ?.addEventListener("click", openProfileDialog);
 
-  document
-    .querySelector("#header-export")
-    ?.addEventListener("click", handleExportData);
-
-  document
-    .querySelector("#header-import")
-    ?.addEventListener("click", handleImportData);
-
   registerServiceWorker();
 
   render();
@@ -88,10 +80,50 @@ function renderHeader() {
   const avatarEl = document.querySelector(".header-avatar");
   const actionsEl = document.querySelector(".header-actions");
   const backBtn = document.querySelector("#nav-back");
+  const project = getSelectedProject();
+  const section = state.ui.view === "section" ? getSelectedSection() : null;
 
   const isHome = state.ui.view === "home";
   backBtn?.classList.toggle("hidden", isHome);
-  actionsEl?.classList.toggle("hidden", !isHome);
+
+  if (actionsEl) {
+    actionsEl.innerHTML = "";
+
+    if (isHome) {
+      actionsEl.innerHTML = `
+        <button class="icon-btn header-icon" id="header-export" aria-label="تصدير البيانات">⇪</button>
+        <button class="icon-btn header-icon" id="header-import" aria-label="استيراد البيانات">⇩</button>
+      `;
+      actionsEl
+        .querySelector("#header-export")
+        ?.addEventListener("click", handleExportData);
+      actionsEl
+        .querySelector("#header-import")
+        ?.addEventListener("click", handleImportData);
+    } else if (state.ui.view === "project" && project) {
+      const toolbar = document.createElement("div");
+      toolbar.className = "view-toolbar";
+      toolbar.innerHTML = `
+        <button class="icon-btn" id="project-options-btn" aria-label="خيارات المشروع">⋮</button>
+      `;
+      toolbar
+        .querySelector("#project-options-btn")
+        ?.addEventListener("click", () => openProjectMenu(project));
+      actionsEl.appendChild(toolbar);
+    } else if (state.ui.view === "section" && project && section) {
+      const toolbar = document.createElement("div");
+      toolbar.className = "view-toolbar";
+      toolbar.innerHTML = `
+        <button class="icon-btn" id="section-options-btn" aria-label="خيارات القسم">⋮</button>
+      `;
+      toolbar
+        .querySelector("#section-options-btn")
+        ?.addEventListener("click", () => openSectionMenu(project, section));
+      actionsEl.appendChild(toolbar);
+    }
+
+    actionsEl.classList.toggle("hidden", actionsEl.childElementCount === 0);
+  }
 
   if (!titleEl || !overlineEl || !subtitleEl || !avatarEl) {
     return;
@@ -108,7 +140,6 @@ function renderHeader() {
     return;
   }
 
-  const project = getSelectedProject();
   avatarEl?.classList.add("hidden");
 
   if (state.ui.view === "project" && project) {
@@ -120,7 +151,6 @@ function renderHeader() {
   }
 
   if (state.ui.view === "section" && project) {
-    const section = getSelectedSection();
     overlineEl.textContent = section ? project.name : "";
     if (section) {
       titleEl.textContent = section.name;
@@ -214,17 +244,6 @@ function renderHomeView() {
 function renderProjectView(project) {
   const wrapper = document.createElement("div");
   wrapper.className = "project-view";
-
-  const toolbar = document.createElement("div");
-  toolbar.className = "view-toolbar";
-  toolbar.innerHTML = `
-    <button class="icon-btn" id="project-options-btn" aria-label="خيارات المشروع">⋮</button>
-  `;
-  toolbar
-    .querySelector("#project-options-btn")
-    ?.addEventListener("click", () => openProjectMenu(project));
-
-  wrapper.appendChild(toolbar);
 
   const listHeading = document.createElement("h3");
   listHeading.className = "list-title";
@@ -343,17 +362,6 @@ function createSectionCard(project, section) {
 function renderSectionView(project, section) {
   const wrapper = document.createElement("div");
   wrapper.className = "section-view";
-
-  const toolbar = document.createElement("div");
-  toolbar.className = "view-toolbar";
-  toolbar.innerHTML = `
-    <button class="icon-btn" id="section-options-btn" aria-label="خيارات القسم">⋮</button>
-  `;
-  toolbar
-    .querySelector("#section-options-btn")
-    ?.addEventListener("click", () => openSectionMenu(project, section));
-
-  wrapper.appendChild(toolbar);
 
   const typeLabel =
     section.table.type === TableType.STATUS ? "جدول ثلاثي الحالات" : "جدول ملاحظات";

@@ -25,7 +25,7 @@
 
 body {
   margin: 0;
-  background: var(--background);
+  background: #000;
   color: var(--text-normal);
   min-height: 100vh;
   display: flex;
@@ -35,11 +35,11 @@ body {
 #app {
   width: min(480px, 100%);
   min-height: 100vh;
-  background: var(--background);
+  background: #000;
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 0 16px 32px 16px;
+  padding: 16px;
 }
 
 .app-header {
@@ -47,13 +47,13 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 24px 12px 12px 12px;
+  padding: 12px;
   border-radius: var(--radius-large);
-  background: var(--surface);
+  background: #11182794;
+  backdrop-filter: blur(3px);
   box-shadow: var(--shadow-header);
-  margin-top: 16px;
   position: sticky;
-  top: 0;
+  top: 16px;
   z-index: 10;
 }
 
@@ -94,6 +94,7 @@ body {
 .header-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .header-actions.hidden {
@@ -161,7 +162,7 @@ body {
 .project-card {
   background: var(--surface);
   border-radius: var(--radius-large);
-  padding: 20px;
+  padding: 16px;
   box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
@@ -336,6 +337,7 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  padding-inline: 16px;
 }
 
 .card {
@@ -394,9 +396,8 @@ body {
 }
 
 .section-table {
-  margin-top: 16px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 0px;
 }
 
 .tracker-grid {

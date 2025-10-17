@@ -45,8 +45,9 @@ body {
 .app-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 28px 12px 12px 12px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px 12px 12px 12px;
   border-radius: var(--radius-large);
   background: var(--surface);
   box-shadow: var(--shadow-header);
@@ -54,6 +55,21 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.header-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .nav-back {
@@ -72,8 +88,16 @@ body {
 }
 
 .nav-back.hidden {
-  opacity: 0;
-  pointer-events: none;
+  display: none;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.header-actions.hidden {
+  display: none;
 }
 
 .header-avatar {
@@ -87,16 +111,33 @@ body {
   font-size: 28px;
 }
 
-.header-greeting {
+.header-avatar.hidden {
+  display: none;
+}
+
+.header-overline {
   font-size: 14px;
   color: var(--text-muted);
-  margin: 0 0 4px;
+  margin: 0;
 }
 
 .header-title {
   margin: 0;
   font-size: 24px;
   color: var(--text-strong);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .app-content {
@@ -144,6 +185,18 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
+}
+
+.section-summary h2 {
+  font-size: 17px;
+}
+
+.section-summary footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: 12.5px;
 }
 
 .project-card p {
@@ -235,16 +288,16 @@ body {
   transform: scale(0.95);
 }
 
+.header-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.actions-inline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .home-view {
@@ -257,6 +310,25 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.section-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.view-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.list-title {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-strong);
 }
 
 .card {
@@ -298,19 +370,6 @@ body {
   color: var(--text-muted);
 }
 
-.sections-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 8px 0 4px;
-}
-
-.sections-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: var(--text-strong);
-}
-
 .sections-list {
   display: flex;
   flex-direction: column;
@@ -327,22 +386,6 @@ body {
   font-size: 15px;
 }
 
-.section-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.section-meta span:first-child {
-  background: var(--surface-alt);
-  color: var(--text-strong);
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-
 .section-table {
   margin-top: 16px;
   overflow-x: auto;
@@ -353,14 +396,14 @@ body {
   display: grid;
   border: 1px solid var(--border);
   border-radius: var(--radius-medium);
-  overflow: hidden;
+  overflow: auto;
   min-width: 100%;
   background: var(--surface);
 }
 
 .grid-cell {
-  border-inline-start: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  border-inline-start: 1px solid #2e4058;
+  border-bottom: 1px solid #2e4058;
   padding: 14px 12px;
   font-size: 14px;
   text-align: center;
@@ -376,6 +419,10 @@ body {
   font-weight: 600;
   background: var(--surface-alt);
   border-inline-start: none;
+}
+.grid-row-header{
+  position: sticky;
+  right: 0px;
 }
 
 .grid-header {
@@ -436,6 +483,23 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.section-stats {
+  gap: 12px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.stat-row strong {
+  color: var(--text-strong);
+  font-size: 15px;
 }
 
 .status-option {

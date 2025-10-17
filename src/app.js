@@ -28,6 +28,7 @@ const state = {
   ui: {
     view: "home",
     selectedProjectId: null,
+    selectedSectionId: null,
   },
 };
 
@@ -48,7 +49,7 @@ function init() {
 
   document
     .querySelector("#nav-back")
-    ?.addEventListener("click", () => setView("home"));
+    ?.addEventListener("click", handleBackNavigation);
 
   document
     .querySelector(".header-avatar")
@@ -57,6 +58,14 @@ function init() {
   document
     .querySelector(".header-text")
     ?.addEventListener("click", openProfileDialog);
+
+  document
+    .querySelector("#header-export")
+    ?.addEventListener("click", handleExportData);
+
+  document
+    .querySelector("#header-import")
+    ?.addEventListener("click", handleImportData);
 
   registerServiceWorker();
 
@@ -69,23 +78,68 @@ function render() {
 }
 
 function renderHeader() {
-  const headerGreeting = document.querySelector(".header-greeting");
-  const avatar = document.querySelector(".header-avatar");
-  const backBtn = document.querySelector("#nav-back");
-
   if (!state.data) {
     return;
   }
 
-  if (headerGreeting) {
-    headerGreeting.textContent = `مرحباً ${state.data.profile.name}`;
+  const titleEl = document.querySelector(".header-title");
+  const overlineEl = document.querySelector(".header-overline");
+  const subtitleEl = document.querySelector(".header-subtitle");
+  const avatarEl = document.querySelector(".header-avatar");
+  const actionsEl = document.querySelector(".header-actions");
+  const backBtn = document.querySelector("#nav-back");
+
+  const isHome = state.ui.view === "home";
+  backBtn?.classList.toggle("hidden", isHome);
+  actionsEl?.classList.toggle("hidden", !isHome);
+
+  if (!titleEl || !overlineEl || !subtitleEl || !avatarEl) {
+    return;
   }
-  if (avatar) {
-    avatar.textContent = state.data.profile.avatar || "🙂";
+
+  if (isHome) {
+    avatarEl?.classList.remove("hidden");
+    avatarEl.textContent = state.data.profile.avatar || "🙂";
+    overlineEl.textContent = `مرحباً ${state.data.profile.name}`;
+    titleEl.textContent = "متابعتي";
+    subtitleEl.textContent = state.data.projects.length
+      ? `مشاريعك الحالية: ${state.data.projects.length}`
+      : "ابدأ مشروعك الأول اليوم";
+    return;
   }
-  if (backBtn) {
-    const isHome = state.ui.view === "home";
-    backBtn.classList.toggle("hidden", isHome);
+
+  const project = getSelectedProject();
+  avatarEl?.classList.add("hidden");
+
+  if (state.ui.view === "project" && project) {
+    overlineEl.textContent = project.description || "مشروع بدون وصف بعد";
+    titleEl.textContent = project.name;
+    const range = formatRangeText(project.startDate, project.endDate);
+    subtitleEl.textContent = range || "بدون مدة محددة";
+    return;
+  }
+
+  if (state.ui.view === "section" && project) {
+    const section = getSelectedSection();
+    overlineEl.textContent = section ? project.name : "";
+    if (section) {
+      titleEl.textContent = section.name;
+      const pieces = [];
+      if (section.description) {
+        pieces.push(section.description);
+      }
+      const dateRange = formatRangeText(section.startDate, section.endDate);
+      if (dateRange) {
+        pieces.push(dateRange);
+      }
+      subtitleEl.textContent =
+        pieces.join(" • ") ||
+        (section.table.type === TableType.STATUS ? "جدول ثلاثي الحالات" : "جدول ملاحظات");
+    } else {
+      titleEl.textContent = "قسم غير موجود";
+      subtitleEl.textContent = "";
+    }
+    return;
   }
 }
 
@@ -113,6 +167,16 @@ function renderMainView() {
     container.appendChild(renderProjectView(project));
     return;
   }
+
+  if (state.ui.view === "section") {
+    const project = getSelectedProject();
+    const section = getSelectedSection();
+    if (!project || !section) {
+      setView("home");
+      return;
+    }
+    container.appendChild(renderSectionView(project, section));
+  }
 }
 
 function renderHomeView() {
@@ -123,18 +187,8 @@ function renderHomeView() {
   actions.className = "projects-actions stack";
   actions.innerHTML = `
     <button class="primary-btn" id="add-project-btn">مشروع جديد</button>
-    <div class="actions-inline">
-      <button class="secondary-btn" id="import-data-btn">استيراد البيانات</button>
-      <button class="secondary-btn" id="export-data-btn">تصدير البيانات</button>
-      <button class="secondary-btn" id="restore-backup-btn">استعادة النسخة الاحتياطية</button>
-    </div>
   `;
   actions.querySelector("#add-project-btn")?.addEventListener("click", () => openProjectForm());
-  actions.querySelector("#import-data-btn")?.addEventListener("click", handleImportData);
-  actions.querySelector("#export-data-btn")?.addEventListener("click", handleExportData);
-  actions
-    .querySelector("#restore-backup-btn")
-    ?.addEventListener("click", handleRestoreBackup);
 
   wrapper.appendChild(actions);
 
@@ -161,52 +215,26 @@ function renderProjectView(project) {
   const wrapper = document.createElement("div");
   wrapper.className = "project-view";
 
-  const infoCard = document.createElement("section");
-  infoCard.className = "project-info card";
-  const header = document.createElement("div");
-  header.className = "card-header";
-
-  const textBox = document.createElement("div");
-  const title = document.createElement("h2");
-  title.textContent = project.name;
-  const description = document.createElement("p");
-  description.textContent =
-    project.description || "أضف وصفاً للمشروع لمزيد من التنظيم.";
-  textBox.append(title, description);
-
-  const menuBtn = document.createElement("button");
-  menuBtn.className = "icon-btn";
-  menuBtn.setAttribute("aria-label", "خيارات المشروع");
-  menuBtn.textContent = "⋮";
-  menuBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    openProjectMenu(project);
-  });
-
-  header.append(textBox, menuBtn);
-
-  const footer = document.createElement("footer");
-  footer.className = "project-meta";
-  const dateBadge = createDateElement(project.startDate, project.endDate);
-  const sectionsCount = document.createElement("span");
-  sectionsCount.textContent = `عدد الأقسام: ${project.sections.length}`;
-  footer.append(dateBadge, sectionsCount);
-
-  infoCard.append(header, footer);
-
-  wrapper.appendChild(infoCard);
-
-  const sectionsHeader = document.createElement("div");
-  sectionsHeader.className = "sections-header";
-  sectionsHeader.innerHTML = `
-    <h3>الأقسام</h3>
+  const toolbar = document.createElement("div");
+  toolbar.className = "view-toolbar";
+  toolbar.innerHTML = `
     <button class="primary-btn" id="add-section-btn">قسم جديد</button>
+    <button class="icon-btn" id="project-options-btn" aria-label="خيارات المشروع">⋮</button>
+
   `;
-  sectionsHeader
+  toolbar
     .querySelector("#add-section-btn")
     ?.addEventListener("click", () => openSectionForm(project));
+  toolbar
+    .querySelector("#project-options-btn")
+    ?.addEventListener("click", () => openProjectMenu(project));
 
-  wrapper.appendChild(sectionsHeader);
+  wrapper.appendChild(toolbar);
+
+  const listHeading = document.createElement("h3");
+  listHeading.className = "list-title";
+  listHeading.textContent = "أقسام المشروع";
+  wrapper.appendChild(listHeading);
 
   if (!project.sections.length) {
     const empty = document.createElement("div");
@@ -220,9 +248,12 @@ function renderProjectView(project) {
 
   const sectionsList = document.createElement("section");
   sectionsList.className = "sections-list";
-  project.sections.forEach((section) => {
-    sectionsList.appendChild(createSectionCard(project, section));
-  });
+  project.sections
+    .slice()
+    .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
+    .forEach((section) => {
+      sectionsList.appendChild(createSectionCard(project, section));
+    });
   wrapper.appendChild(sectionsList);
 
   return wrapper;
@@ -267,21 +298,13 @@ function createProjectCard(project) {
 
 function createSectionCard(project, section) {
   const card = document.createElement("article");
-  card.className = "section-card card";
+  card.className = "project-card section-summary";
   const typeLabel =
     section.table.type === TableType.STATUS ? "جدول ثلاثي الحالات" : "جدول ملاحظات";
 
-  const header = document.createElement("div");
-  header.className = "card-header";
-
-  const textBox = document.createElement("div");
-  const title = document.createElement("h4");
+  const header = document.createElement("header");
+  const title = document.createElement("h2");
   title.textContent = section.name;
-  const description = document.createElement("p");
-  description.textContent =
-    section.description || "أضف وصفاً مختصراً للقسم.";
-  textBox.append(title, description);
-
   const menuBtn = document.createElement("button");
   menuBtn.className = "icon-btn";
   menuBtn.setAttribute("aria-label", "خيارات القسم");
@@ -290,27 +313,73 @@ function createSectionCard(project, section) {
     event.stopPropagation();
     openSectionMenu(project, section);
   });
+  header.append(title, menuBtn);
 
-  header.append(textBox, menuBtn);
+  const description = document.createElement("p");
+  description.textContent = section.description || "لم يُضف وصف للقسم بعد.";
 
-  const meta = document.createElement("div");
-  meta.className = "section-meta";
+  const footer = document.createElement("footer");
   const typeSpan = document.createElement("span");
   typeSpan.textContent = typeLabel;
-  const dateSpan = createDateElement(section.startDate, section.endDate);
-  meta.append(typeSpan, dateSpan);
+  const statsSpan = document.createElement("span");
+  statsSpan.textContent = `${section.table.rows.length} عناصر × ${section.table.columns.length} أعمدة`;
+  footer.append(typeSpan, statsSpan);
 
-  const tableHost = document.createElement("div");
-  tableHost.className = "section-table";
-  if (section.table.type === TableType.STATUS) {
-    tableHost.appendChild(createStatusTableElement(project.id, section));
-  } else {
-    tableHost.appendChild(createNotesTableElement(project.id, section));
-  }
+  card.append(header, description, footer);
 
-  card.append(header, meta, tableHost);
+  card.addEventListener("click", () => {
+    setView("section", { projectId: project.id, sectionId: section.id });
+  });
 
   return card;
+}
+
+function renderSectionView(project, section) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "section-view";
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "view-toolbar";
+  toolbar.innerHTML = `
+    <button class="icon-btn" id="section-options-btn" aria-label="خيارات القسم">⋮</button>
+  `;
+  toolbar
+    .querySelector("#section-options-btn")
+    ?.addEventListener("click", () => openSectionMenu(project, section));
+
+  wrapper.appendChild(toolbar);
+
+  const typeLabel =
+    section.table.type === TableType.STATUS ? "جدول ثلاثي الحالات" : "جدول ملاحظات";
+  // const statsCard = document.createElement("section");
+  // statsCard.className = "card section-stats";
+  // const statRows = [
+  //   { label: "نوع الجدول", value: typeLabel },
+  //   { label: "عدد الأعمدة", value: section.table.columns.length },
+  //   { label: "عدد العناصر", value: section.table.rows.length },
+  // ];
+  // const rangeText = formatRangeText(section.startDate, section.endDate);
+  // if (rangeText) {
+  //   statRows.push({ label: "الفترة", value: rangeText });
+  // }
+  // statsCard.innerHTML = statRows
+  //   .map(
+  //     (row) =>
+  //       `<div class="stat-row"><span>${row.label}</span><strong>${row.value}</strong></div>`
+  //   )
+  //   .join("");
+  // wrapper.appendChild(statsCard);
+
+  const tableContainer = document.createElement("section");
+  tableContainer.className = "card section-table";
+  const tableElement =
+    section.table.type === TableType.STATUS
+      ? createStatusTableElement(project.id, section)
+      : createNotesTableElement(project.id, section);
+  tableContainer.appendChild(tableElement);
+  wrapper.appendChild(tableContainer);
+
+  return wrapper;
 }
 
 function createStatusTableElement(projectId, section) {
@@ -610,7 +679,6 @@ function openSectionForm(project, section = null) {
         <div class="pill-group">
           <button type="button" class="pill-btn" data-columns="7">أسبوع (7)</button>
           <button type="button" class="pill-btn" data-columns="14">أسبوعان (14)</button>
-          <button type="button" class="pill-btn" data-columns="24">٢٤ يوماً</button>
           <button type="button" class="pill-btn" data-columns="30">شهر (30)</button>
         </div>
       </div>
@@ -1024,8 +1092,27 @@ function renderEmptyState() {
 
 function setView(view, options = {}) {
   state.ui.view = view;
-  state.ui.selectedProjectId = options.projectId ?? null;
+
+  if (view === "home") {
+    state.ui.selectedProjectId = null;
+    state.ui.selectedSectionId = null;
+  } else if (view === "project") {
+    state.ui.selectedProjectId = options.projectId ?? state.ui.selectedProjectId;
+    state.ui.selectedSectionId = null;
+  } else if (view === "section") {
+    state.ui.selectedProjectId = options.projectId ?? state.ui.selectedProjectId;
+    state.ui.selectedSectionId = options.sectionId ?? state.ui.selectedSectionId;
+  }
+
   render();
+}
+
+function handleBackNavigation() {
+  if (state.ui.view === "section" && state.ui.selectedProjectId) {
+    setView("project", { projectId: state.ui.selectedProjectId });
+    return;
+  }
+  setView("home");
 }
 
 function getSelectedProject() {
@@ -1034,22 +1121,25 @@ function getSelectedProject() {
   );
 }
 
-function createDateElement(start, end) {
-  const span = document.createElement("span");
+function getSelectedSection() {
+  const project = getSelectedProject();
+  if (!project || !state.ui.selectedSectionId) {
+    return null;
+  }
+  return project.sections.find((section) => section.id === state.ui.selectedSectionId) ?? null;
+}
+
+function formatRangeText(start, end) {
   if (!start && !end) {
-    span.textContent = "بدون مدة محددة";
-    return span;
+    return "";
   }
   if (start && end) {
-    span.textContent = `${formatDate.format(new Date(start))} ← ${formatDate.format(new Date(end))}`;
-    return span;
+    return `${formatDate.format(new Date(start))} ← ${formatDate.format(new Date(end))}`;
   }
   if (start) {
-    span.textContent = `يبدأ ${formatDate.format(new Date(start))}`;
-    return span;
+    return `يبدأ ${formatDate.format(new Date(start))}`;
   }
-  span.textContent = `حتى ${formatDate.format(new Date(end))}`;
-  return span;
+  return `حتى ${formatDate.format(new Date(end))}`;
 }
 
 function formatRelative(dateString) {
